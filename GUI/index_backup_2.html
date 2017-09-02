@@ -1,0 +1,563 @@
+<!doctype html> 
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<link rel="apple-touch-icon" sizes="76x76" href="assets/img/apple-icon.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="assets/img/favicon.png">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+	<title>myMood</title>
+
+	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <meta name="viewport" content="width=device-width" />
+
+
+    <!-- Bootstrap core CSS     -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Animation library for notifications   -->
+    <link href="assets/css/animate.min.css" rel="stylesheet"/>
+
+    <!--  Paper Dashboard core CSS    -->
+    <link href="assets/css/paper-dashboard.css" rel="stylesheet"/>
+
+<link href="assets/css/myMood.css" rel="stylesheet"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.45.0.min.js"></script>
+<script src="assets/js/Chart.js"></script>
+<script>
+AWS.config.region = 'us-west-1';
+function postActivity(){
+    console.log("Entered Post Activity");
+        var pEID = 1;
+        
+        var pMoodID = -1;
+        var pDate = '03/13/1995';
+        var pTime = '02:00';
+        var pActivityName = "Social"
+        var pActID = -1;
+
+        pActID = $("input[name=activity]:checked").val();
+        if(pActID == activitySize){
+            pActivityName = document.getElementById("othersName").value;
+        }
+        else{
+            pActivityName = capitalizeFirstLetter(actNames[$("input[name=activity]:checked").val()-1]);    
+        }
+        
+        pTime = document.getElementById("entTime").value;
+        pDate = document.getElementById("entDate").value;
+        pMoodID = $("input[name=emotion]:checked").val();
+        $.get("https://v5idpy1vl3.execute-api.us-east-1.amazonaws.com/prod/emoteDBUpdate?TableName=emote", function(table, status){            
+            
+            var nItems = table.Items.length;
+            var eIDs = [];
+            for (var i = 0; i <nItems ; i++) {
+                eIDs.push(parseInt(table.Items[i].EID));
+
+            };
+            var temp_UID = 1;
+            while(($.inArray(temp_UID, eIDs)!=-1)||(temp_UID==1) ){
+              temp_UID = Math.floor(Math.random() * 5000);
+              
+            }
+            pEID = temp_UID;
+            //console.log("Got pEID = "+pEID);
+            
+            $.ajax({
+
+                url: 'https://v5idpy1vl3.execute-api.us-east-1.amazonaws.com/prod/emoteDBUpdate?TableName=emote',
+                type: 'POST',
+                data: JSON.stringify({"TableName": "emote", "Item": {"EID": pEID, "Activity": pActivityName,"Date": pDate,"MoodID": pMoodID, "Time":pTime, "ActID":pActID}}),
+                success: function(data) {
+                alert("Activity added successfully :-)");
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                alert("Error");
+                }
+            });
+            //console.log("After AJAX on postActivity");
+
+        });
+
+};
+</script>
+
+
+
+
+<script>
+var panelTypes = ["panel-default", "panel-primary", "panel-success","panel-info", "panel-warning", "panel-danger"];
+var debugVar;
+function sortByKey(array, key) {
+    return array.sort(function(a, b) {
+        var x = a[key]; var y = b[key];
+        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+    });
+}
+function dateToDBStr(inp){
+
+    var dd = inp.getDate();
+    var mm = inp.getMonth()+1; //January is 0!
+
+    var yyyy = inp.getFullYear();
+    if(dd<10){
+        dd='0'+dd;
+    } 
+    if(mm<10){
+        mm='0'+mm;
+    } 
+    return(yyyy+'-'+mm+'-'+dd);
+
+}    
+
+function populateRecent(){
+    $.get("https://v5idpy1vl3.execute-api.us-east-1.amazonaws.com/prod/emoteDBUpdate?TableName=emote", function(table, status){            
+            var nItems = table.Items.length;
+            //table.Items[i].ImageLink
+
+     //       sortByKey(sortByKey(table.Items,"Date").filter(function(v){ return v["Date"] == "2017-04-12"; }),"Time");
+
+            var todayDate = new Date();
+            var getFromDate = new Date(2017,03,16) // 03 means month 04 
+            var inht = 0;
+            var recentEntriesHTML="";
+            for (var d = getFromDate; d <= todayDate; d.setDate(d.getDate() + 1)) {
+                
+                recentEntriesHTML = recentEntriesHTML + "<div class='panel "+panelTypes[inht%6]+" '> <div class='panel-heading'>"+d.toDateString()+" </div><div class='panel-body'><div class='table-responsive'><table class='table' style='width:100%'>";
+                var dayEntries =  sortByKey(sortByKey(table.Items,"Date").filter(function(v){ return v["Date"] == dateToDBStr(d); }),"Time");   
+                for(i=0;i<dayEntries.length;i++){
+                    recentEntriesHTML = recentEntriesHTML+"<tr><td>"+dayEntries[i].Time+" Hrs &nbsp; &nbsp;</td><td> <img src='assets/img/emotions/"+emotions[dayEntries[i].MoodID-1]+".png' style='width:50px;height:50px;'/>";
+                    recentEntriesHTML = recentEntriesHTML+" - "+capitalizeFirstLetter(emotions[dayEntries[i].MoodID-1])+" &nbsp;&nbsp; </td>";
+                    recentEntriesHTML = recentEntriesHTML + "<td> <img src='assets/img/activities/"+activities[dayEntries[i].ActID-1]+".png' style='width:50px;height:50px;'/>";
+                    recentEntriesHTML = recentEntriesHTML+" - "+capitalizeFirstLetter(dayEntries[i].Activity);
+                    //console.log("<img src='assets/img/emotions/'"+emotions[dayEntries[i].MoodID]+"'.png'/>");
+                    recentEntriesHTML = recentEntriesHTML+"</td></tr>";
+
+                }
+                if (dayEntries.length == 0){
+                    recentEntriesHTML=recentEntriesHTML+"No Activities recorded for this day";
+                }
+                debugVar = dayEntries;
+                inht=inht+1;
+                recentEntriesHTML=recentEntriesHTML+"</table></div></div></div>";
+            }
+            document.getElementById("recentEntriesPanel").innerHTML=recentEntriesHTML;
+            });
+   // a = $.get("https://v5idpy1vl3.execute-api.us-east-1.amazonaws.com/prod/emoteDBUpdate?TableName=emote");
+   // sortByKey(a.responseJSON["Items"],"Date").filter(function(v){ return v["Date"] == "2017-04-12"; });
+    
+}
+</script>
+    
+
+
+    <!--  Fonts and icons     -->
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Muli:400,300' rel='stylesheet' type='text/css'>
+    <link href="assets/css/themify-icons.css" rel="stylesheet">
+
+    <script type="text/javascript">
+    function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+    var emotions = ['depressed','excited','happy','neutral','relaxed','sad','shocked','stressed','tired'];
+        var emoNames = ['Depressed','Excited','Happy','Neutral','Relaxed','Sad','Shocked','Stressed','Tired'];
+    var activities = ['study','work','cook','photography','gym','social','gaming','date','other'];
+                var actNames = activities; 
+                var activitySize = 9;  
+                var scr_flag = 0; 
+     
+     /*   
+     function writeEmoGrid(){
+        var emotionGridHTML = "";
+        var emotions = ['depressed','excited','happy','neutral','relaxed','sad','shocked','stressed','tired'];
+        var names = ['Depressed','Excited','Happy','Neutral','Relaxed','Sad','Shocked','Stressed','Tired'];
+
+        for(j = 0; j < 9; j++){
+                emotionGridHTML=emotionGridHTML+'<table cellpadding="10" style="display: inline-block;"><tr><td align = "center"><input id="'+emotions[j]+'" type="radio" name="emotion" value="'+(j+1)+'" ></input><label class="animate-emotion '+emotions[j]+'" for="'+emotions[j]+'"></label></td></tr><tr><td align="center">'+names[j]+'</td></tr></table> ';
+            }
+        document.getElementById('emoGrid').innerHTML = emotionGridHTML;
+            }; */
+        function writeEmoGrid(){
+        var emotionGridHTML = "";
+        
+        for(j = 0; j < 9; j++){
+                emotionGridHTML=emotionGridHTML+'<table cellpadding="10" style="display: inline-block;"><tr><td align = "center"><input id="'+emotions[j]+'" type="radio" name="emotion" value="'+(j+1)+'" required></input><label class="animate-emotion" style="background-image:url(assets/img/emotions/'+emotions[j]+'.png);" for="'+emotions[j]+'"></label></td></tr><tr><td align="center">'+capitalizeFirstLetter(emotions[j])+'</td></tr></table> ';
+            }
+        document.getElementById('emoGrid').innerHTML = emotionGridHTML;
+            };
+
+    function writeActivityGrid(){
+                var activityGridHTML = "";
+                
+
+                for(j = 0; j < activitySize; j++){
+                          activityGridHTML=activityGridHTML+'<table cellpadding="10" style="display: inline-block;"><tr><td align = "center"><input id="'+activities[j]+'" type="radio" onclick="javascript:othersCheck();" name="activity" value="'+(j+1)+'" required></input><label class="animate-activity" style="background-image:url(assets/img/activities/'+activities[j]+'.png);" for="'+activities[j]+'"></label></td></tr><tr><td align="center">'+capitalizeFirstLetter(activities[j])+'</td></tr></table> ';
+                    }
+                document.getElementById('activityGrid').innerHTML = activityGridHTML;
+            };
+            window.onload = function(){
+                writeEmoGrid();
+                writeActivityGrid();
+                populateRecent();
+                var chartFromDate = new Date(2017,03,16);
+                var chartToDate = new Date();
+                calcStat(chartFromDate,chartToDate);
+            }
+            function othersCheck() {
+                if (document.getElementById(activities[activities.length-1]).checked) {
+                    document.getElementById('othersEntry').style.display = 'block';
+                    document.getElementById("othersName").required = true;
+                    //document.getElementById('othersEntry').focus();
+                    if(scr_flag==0){
+                    $("#MainPanel").animate({ scrollTop: $("#AddBtn").offset().top},'slow');}
+                    scr_flag = 1;
+
+
+                }
+                else {
+                    document.getElementById('othersEntry').style.display = 'none';
+                    document.getElementById("othersName").required = false;
+                    scr_flag=0;
+                }
+
+                //window.scrollTo(0,document.body.scrollHeight);
+
+            }
+         
+    </script>
+    <script type="text/javascript">
+    function showPage(pageID) {
+                pages = document.getElementsByClassName("emoPage");
+                for(j = 0; j < pages.length; j++){
+                    if(pages[j].id == pageID){
+                        document.getElementById(pageID).style.display = 'block';
+                    }
+                    else{
+                        document.getElementById(pages[j].id).style.display = 'none';
+                    }
+                }
+            }
+    
+    </script>
+    <script type="text/javascript">
+    function calcStat(chartFromDate, chartToDate){
+        var pie_colors = ["#FF0000", "#008000", "#0000FF", "#FFFF00", "#800000", "#808000", "#00FFFF", "#000080", "#800080", "#00FF00", "#008080", "#FF00FF"];
+        var actx = document.getElementById("actStatChart");
+        var emox = document.getElementById("emoStatChart");
+        var emoChartData = {
+              labels: [
+                    
+                ],
+                datasets: [
+                    {
+                        data: [],
+                        backgroundColor: [
+                        ],
+                        hoverBackgroundColor: [
+                        ]
+
+                    }
+                    ]
+        };
+        var actChartData = {
+              labels: [
+                    
+                ],
+                datasets: [
+                    {
+                        data: [],
+                        backgroundColor: [
+                        ],
+                        hoverBackgroundColor: [
+                        ]
+
+                    }
+                    ]
+        };
+        //var chartFromDate = new Date(2017,03,16);
+        //var chartToDate = new Date();
+        var actCount = [];
+        var emoCount = [];
+
+        for (var i = 0; i < activitySize; i++) {actCount[i] = 0;}
+        for (var i = 0; i < emotions.length; i++) {emoCount[i] = 0;}
+        $.get("https://v5idpy1vl3.execute-api.us-east-1.amazonaws.com/prod/emoteDBUpdate?TableName=emote", function(table, status){            
+        
+            for (var d = chartFromDate; d <= chartToDate; d.setDate(d.getDate() + 1)) {
+                   
+                    var dayEntries =  sortByKey(sortByKey(table.Items,"Date").filter(function(v){ return v["Date"] == dateToDBStr(d); }),"Time");   
+                    for(i=0;i<dayEntries.length;i++){
+                        //dayEntries[i].Time;
+                        actCount[dayEntries[i].ActID-1] = actCount[dayEntries[i].ActID-1] + 1;
+                        emoCount[dayEntries[i].MoodID-1] = emoCount[dayEntries[i].MoodID-1] +1;
+                    }
+                    
+                    
+                }
+
+            for(var i=0; i < activitySize; i++){
+                actChartData['labels'][i] = capitalizeFirstLetter(activities[i]);
+                actChartData['datasets'][0]['data'][i] = actCount[i];
+                actChartData['datasets'][0]['backgroundColor'][i] = pie_colors[i];
+                actChartData['datasets'][0]['hoverBackgroundColor'][i] = pie_colors[i];
+                emoChartData['labels'][i] = capitalizeFirstLetter(emotions[i]);
+                emoChartData['datasets'][0]['data'][i] = emoCount[i];
+                emoChartData['datasets'][0]['backgroundColor'][i] = pie_colors[i];
+                emoChartData['datasets'][0]['hoverBackgroundColor'][i] = pie_colors[i];
+            }
+            //console.log(actx);
+            var actPieChart = new Chart(actx,{
+                type: 'pie',
+                data: actChartData,
+                options: {
+                    responsive:false,
+                    title: {
+                        display: true,
+                        text: 'Activity Chart',
+                        position: 'bottom',
+                        fontSize: 20
+                    }
+                }    
+            });
+            var emoPieChart = new Chart(emox,{
+                type: 'pie',
+                data: emoChartData,
+                options: {
+                    responsive:false,
+                    title: {
+                        display: true,
+                        text: 'Mood Chart',
+                        position: 'bottom',
+                        fontSize: 20
+                    }
+                }    
+            });
+            
+        });
+    }
+    </script>
+    
+    
+
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="sidebar" data-background-color="white" data-active-color="success">
+
+    <!--
+		Tip 1: you can change the color of the sidebar's background using: data-background-color="white | black"
+		Tip 2: you can change the color of the active button using the data-active-color="primary | info | success | warning | danger"
+	-->
+
+    	<div class="sidebar-wrapper">
+            <div class="logo">
+                <a href="#" class="simple-text">
+                   myMood
+                </a>
+            </div>
+
+            <ul class="nav">
+                <li>
+                    <a onclick="showPage('AddEntry')">
+                        <i class="fa fa-plus-square-o" ></i>
+                        <p>Add Entry</p>
+                    </a>
+                </li>
+                <li>
+                    <a onclick="showPage('ShowStats')">
+                        <i class="ti-panel"></i>
+                        <p>Statistics</p>
+                    </a>
+                </li>
+                <li>
+                    <a onclick="showPage('RecentEntries')">
+                        <i class="ti-view-list-alt"></i>
+                        <p>Recent Entries</p>
+                    </a>
+                </li>
+                <li>
+                    <a onclick="showPage('Settings')">
+                        <i class="ti-text"></i>
+                        <p>Settings</p>
+                    </a>
+                </li>
+                
+				
+            </ul>
+    	</div>
+    </div>
+
+    <div class="main-panel" id="MainPanel">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar bar1"></span>
+                        <span class="icon-bar bar2"></span>
+                        <span class="icon-bar bar3"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Dashboard</a>
+                </div>
+                <div class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="ti-panel"></i>
+								<p>Stats</p>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    <i class="ti-bell"></i>
+                                    <p class="notification">5</p>
+									<p>Notifications</p>
+									<b class="caret"></b>
+                              </a>
+                              <ul class="dropdown-menu">
+                                <li><a href="#">Notification 1</a></li>
+                                <li><a href="#">Notification 2</a></li>
+                                <li><a href="#">Notification 3</a></li>
+                                <li><a href="#">Notification 4</a></li>
+                                <li><a href="#">Another notification</a></li>
+                              </ul>
+                        </li>
+						<li>
+                            <a href="#">
+								<i class="ti-settings"></i>
+								<p>Settings</p>
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+
+
+        <div class="content emoPage" id="AddEntry">
+            <form action="javascript:void(0);" onsubmit="postActivity()">
+                <div class="container-fluid" id="AddEmotion">
+                    <div class = "row">
+                        <table style="border-spacing: 10px;">
+                            <tr>
+                                <td >
+                                    <b style="font-size:1.5em">Date&nbsp;&nbsp;</b>
+                                </td>
+                                <td style="vertical-align:center">
+                                    <input style="vertical-align:center" type="date" id="entDate" placeholder="MM/DD/YYYY" required>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="vertical-align:center"><b style="font-size:1.5em">Time&nbsp;&nbsp;</b></td>
+                                <td style="vertical-align:center"><input type="time" id="entTime" placeholder="HH:MM PM" required></td>
+                            </tr>
+                        </table>
+                
+                    </div>
+                    <div class="row" >
+                        <h1 align = "center"> How are You? </h1>
+                    </div>
+                    <div id="emoGrid" class="emotion-selector">
+                            
+                    </div>
+    
+                
+                </div>
+            <div class="container-fluid" id="AddActivity">
+                <div class="row" >
+                    <h1 align = "center"> What did you do? </h1>
+                </div>
+                <div id="activityGrid" class="activity-selector">
+
+                    
+                </div>
+                <div id="othersEntry" style="display:none">
+                   
+                        <h1 align="center">What's the new thing you did?</h1>
+                   
+                   <div class="othersInput" style="margin-left: auto; margin-right: auto;">
+                        <input align="center" style="vertical-align:center" id="othersName" placeholder="Enter activity name">
+                
+                    </div>
+                   
+                </div>
+            </div>
+            <div align="center" id="AddBtn" style="margin:20px;">
+                <input type="submit" class="btn"/>
+              
+              <!-- <button type="submit" class="btn" align="center" ><h5>Add Entry</h5></button>
+                -->
+            </div>
+          </form>
+        </div>
+        <div class="content emoPage" id="ShowStats">
+                <div class="container-fluid" >
+                    <h1 align = "center"> Statistics </h1>
+                    <div class = "col-md-4">
+                    <canvas id="actStatChart"  align="center"></canvas> 
+                </div>
+                <div class = "col-md-4">
+                    <canvas id="emoStatChart" align="center"></canvas>
+                </div>
+                
+                </div>
+        </div>
+        <div class="content emoPage" id="RecentEntries">
+                <div class="container-fluid" >
+                    <h1 align = "center"> Recent Entries </h1>
+
+                    <div id="recentEntriesPanel">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Panel with panel-default class</div>
+                            <div class="panel-body">Panel Content<hr>Again?</div>
+
+                        </div>
+                    </div>
+                    
+                </div>
+        </div>
+
+
+        <footer class="footer">
+            <div class="container-fluid">
+                <nav class="pull-left">
+                   
+                </nav>
+                <div class="copyright pull-right">Template obtained from <a href="http://www.creative-tim.com">Creative Tim</a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+</div>
+
+
+</body>
+
+    <!--   Core JS Files   -->
+    <script src="assets/js/jquery-1.10.2.js" type="text/javascript"></script>
+	<script src="assets/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--  Checkbox, Radio & Switch Plugins -->
+	<!-- <script src="assets/js/bootstrap-checkbox-radio.js"></script> -->
+
+	<!--  Charts Plugin -->
+	<!-- <script src="assets/js/chartist.min.js"></script> -->
+
+    <!--  Notifications Plugin    -->
+    <script src="assets/js/bootstrap-notify.js"></script>
+
+    <!--  Google Maps Plugin    -->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
+
+    <!-- Paper Dashboard Core javascript and methods for Demo purpose -->
+	<script src="assets/js/paper-dashboard.js"></script>
+
+	
+
+</html>

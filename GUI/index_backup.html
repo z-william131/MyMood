@@ -1,0 +1,420 @@
+<!doctype html> 
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<link rel="apple-touch-icon" sizes="76x76" href="assets/img/apple-icon.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="assets/img/favicon.png">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+	<title>myMood</title>
+
+	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <meta name="viewport" content="width=device-width" />
+
+
+    <!-- Bootstrap core CSS     -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Animation library for notifications   -->
+    <link href="assets/css/animate.min.css" rel="stylesheet"/>
+
+    <!--  Paper Dashboard core CSS    -->
+    <link href="assets/css/paper-dashboard.css" rel="stylesheet"/>
+
+<link href="assets/css/myMood.css" rel="stylesheet"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.45.0.min.js"></script>
+<script>
+AWS.config.region = 'us-west-1';
+function postActivity(){
+        var pEID = 1;
+        
+        var pMoodID = 3;
+        var pDate = '03/13/1995';
+        var pTime = '02:00';
+        var pActivityName = "Social"
+        
+        pActivityName = capitalizeFirstLetter(actNames[$("input[name=activity]:checked").val()-1]);
+        pTime = document.getElementById("entTime").value;
+        pDate = document.getElementById("entDate").value;
+        pMoodID = $("input[name=emotion]:checked").val();
+        $.get("https://v5idpy1vl3.execute-api.us-east-1.amazonaws.com/prod/emoteDBUpdate?TableName=emote", function(table, status){            
+            
+            var nItems = table.Items.length;
+            var eIDs = [];
+            for (var i = 0; i <nItems ; i++) {
+                eIDs.push(parseInt(table.Items[i].EID));
+
+            };
+            var temp_UID = 1;
+            while(($.inArray(temp_UID, eIDs)!=-1)||(temp_UID==1) ){
+              temp_UID = Math.floor(Math.random() * 200);
+              
+            }
+            pEID = temp_UID;
+            
+            $.ajax({
+
+                url: 'https://v5idpy1vl3.execute-api.us-east-1.amazonaws.com/prod/emoteDBUpdate?TableName=emote',
+                type: 'POST',
+                data: JSON.stringify({"TableName": "emote", "Item": {"EID": pEID, "Activity": pActivityName,"Date": pDate,"MoodID": pMoodID, "Time":pTime}}),
+                success: function(data) {
+                alert("Activity added successfully :-)");
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                alert("Error");
+                }
+            });
+
+        });
+
+};
+</script>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/3.8.0/firebase.js"></script>
+<script>
+/*
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyB3OUUW_cJn4ORoGN9zxjy_8kA1NtECrpc",
+    authDomain: "mymood-aa7d5.firebaseapp.com",
+    databaseURL: "https://mymood-aa7d5.firebaseio.com",
+    projectId: "mymood-aa7d5",
+    storageBucket: "mymood-aa7d5.appspot.com",
+    messagingSenderId: "1063412675370"
+  };
+  firebase.initializeApp(config);
+  var storage = firebase.storage();
+  var storageRef = storage.ref();
+  var actImgRef = storageRef.child('activitiesImgs');
+  var emoImgRef = storageRef.child('emoImgs');
+  var provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithRedirect(provider);
+  */
+</script>
+    
+
+
+    <!--  Fonts and icons     -->
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Muli:400,300' rel='stylesheet' type='text/css'>
+    <link href="assets/css/themify-icons.css" rel="stylesheet">
+
+    <script type="text/javascript">
+    function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+    var emotions = ['depressed','excited','happy','neutral','relaxed','sad','shocked','stressed','tired'];
+        var emoNames = ['Depressed','Excited','Happy','Neutral','Relaxed','Sad','Shocked','Stressed','Tired'];
+    var activities = ['study','work','cook','photography','gym','social','gaming','date','other'];
+                var actNames = activities; 
+                var activitySize = 9;  
+                var scr_flag = 0; 
+     
+     /*   
+     function writeEmoGrid(){
+        var emotionGridHTML = "";
+        var emotions = ['depressed','excited','happy','neutral','relaxed','sad','shocked','stressed','tired'];
+        var names = ['Depressed','Excited','Happy','Neutral','Relaxed','Sad','Shocked','Stressed','Tired'];
+
+        for(j = 0; j < 9; j++){
+                emotionGridHTML=emotionGridHTML+'<table cellpadding="10" style="display: inline-block;"><tr><td align = "center"><input id="'+emotions[j]+'" type="radio" name="emotion" value="'+(j+1)+'" ></input><label class="animate-emotion '+emotions[j]+'" for="'+emotions[j]+'"></label></td></tr><tr><td align="center">'+names[j]+'</td></tr></table> ';
+            }
+        document.getElementById('emoGrid').innerHTML = emotionGridHTML;
+            }; */
+        function writeEmoGrid(){
+        var emotionGridHTML = "";
+        
+        for(j = 0; j < 9; j++){
+                emotionGridHTML=emotionGridHTML+'<table cellpadding="10" style="display: inline-block;"><tr><td align = "center"><input id="'+emotions[j]+'" type="radio" name="emotion" value="'+(j+1)+'" ></input><label class="animate-emotion" style="background-image:url(assets/img/emotions/'+emotions[j]+'.png);" for="'+emotions[j]+'"></label></td></tr><tr><td align="center">'+capitalizeFirstLetter(emotions[j])+'</td></tr></table> ';
+            }
+        document.getElementById('emoGrid').innerHTML = emotionGridHTML;
+            };
+
+    function writeActivityGrid(){
+                var activityGridHTML = "";
+                
+
+                for(j = 0; j < activitySize; j++){
+                          activityGridHTML=activityGridHTML+'<table cellpadding="10" style="display: inline-block;"><tr><td align = "center"><input id="'+activities[j]+'" type="radio" onclick="javascript:othersCheck();" name="activity" value="'+(j+1)+'" ></input><label class="animate-activity" style="background-image:url(assets/img/activities/'+activities[j]+'.png);" for="'+activities[j]+'"></label></td></tr><tr><td align="center">'+capitalizeFirstLetter(activities[j])+'</td></tr></table> ';
+                    }
+                document.getElementById('activityGrid').innerHTML = activityGridHTML;
+            };
+            window.onload = function(){
+                writeEmoGrid();
+                writeActivityGrid();
+            }
+            function othersCheck() {
+                if (document.getElementById(activities[activities.length-1]).checked) {
+                    document.getElementById('othersEntry').style.display = 'block';
+                    //document.getElementById('othersEntry').focus();
+                    if(scr_flag==0){
+                    $("#MainPanel").animate({ scrollTop: $("#AddBtn").offset().top},'slow');}
+                    scr_flag = 1;
+
+
+                }
+                else {
+                    document.getElementById('othersEntry').style.display = 'none';
+                    scr_flag=0;
+                }
+
+                //window.scrollTo(0,document.body.scrollHeight);
+
+            }
+         
+    </script>
+    <script type="text/javascript">
+    function showPage(pageID) {
+                pages = document.getElementsByClassName("emoPage");
+                for(j = 0; j < pages.length; j++){
+                    if(pages[j].id == pageID){
+                        document.getElementById(pageID).style.display = 'block';
+                    }
+                    else{
+                        document.getElementById(pages[j].id).style.display = 'none';
+                    }
+                }
+            }
+    </script>
+
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="sidebar" data-background-color="white" data-active-color="success">
+
+    <!--
+		Tip 1: you can change the color of the sidebar's background using: data-background-color="white | black"
+		Tip 2: you can change the color of the active button using the data-active-color="primary | info | success | warning | danger"
+	-->
+
+    	<div class="sidebar-wrapper">
+            <div class="logo">
+                <a href="#" class="simple-text">
+                   myMood
+                </a>
+            </div>
+
+            <ul class="nav">
+                <li class="active">
+                    <a onclick="showPage('AddEntry')">
+                        <i class="fa fa-plus-square-o" ></i>
+                        <p>Add Entry</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="user.html">
+                        <i class="ti-user"></i>
+                        <p>User Profile</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="table.html">
+                        <i class="ti-view-list-alt"></i>
+                        <p>Table List</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="typography.html">
+                        <i class="ti-text"></i>
+                        <p>Typography</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="icons.html">
+                        <i class="ti-pencil-alt2"></i>
+                        <p>Icons</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="maps.html">
+                        <i class="ti-map"></i>
+                        <p>Maps</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="notifications.html">
+                        <i class="ti-bell"></i>
+                        <p>Notifications</p>
+                    </a>
+                </li>
+				
+            </ul>
+    	</div>
+    </div>
+
+    <div class="main-panel" id="MainPanel">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar bar1"></span>
+                        <span class="icon-bar bar2"></span>
+                        <span class="icon-bar bar3"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Dashboard</a>
+                </div>
+                <div class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="ti-panel"></i>
+								<p>Stats</p>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    <i class="ti-bell"></i>
+                                    <p class="notification">5</p>
+									<p>Notifications</p>
+									<b class="caret"></b>
+                              </a>
+                              <ul class="dropdown-menu">
+                                <li><a href="#">Notification 1</a></li>
+                                <li><a href="#">Notification 2</a></li>
+                                <li><a href="#">Notification 3</a></li>
+                                <li><a href="#">Notification 4</a></li>
+                                <li><a href="#">Another notification</a></li>
+                              </ul>
+                        </li>
+						<li>
+                            <a href="#">
+								<i class="ti-settings"></i>
+								<p>Settings</p>
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+
+
+        <div class="content emoPage" id="AddEntry">
+            <div class="container-fluid" id="AddEmotion">
+                <div class = "row">
+                    <table style="border-spacing: 10px;">
+                        <tr>
+                            <td >
+                    <b style="font-size:1.5em">Date&nbsp;&nbsp;</b>
+                </td>
+                <td style="vertical-align:center">
+                    <input style="vertical-align:center" type="date" id="entDate" placeholder="MM/DD/YYYY">
+                </td>
+                </tr>
+                <tr>
+                    <td style="vertical-align:center"><b style="font-size:1.5em">Time&nbsp;&nbsp;</b></td>
+                    <td style="vertical-align:center"><input type="time" id="entTime" placeholder="HH:MM PM"></td>
+                </tr>
+            </table>
+                
+                </div>
+                <div class="row" >
+                    <h1 align = "center"> How are You? </h1>
+                </div>
+                        <div id="emoGrid" class="emotion-selector">
+                            <!--
+                            <table>
+                                <tr>
+                                    <td align = "center"><input id="depressed" type="radio" name="emotion" value="1" ></input>
+                            <label class="animate-emotion depressed" for="depressed"></label></td>
+                                </tr>
+                                <tr><td align="center">Depressed</td></tr>
+                               </table> 
+                            
+                            <input id="excited" type="radio" name="emotion" value="2" >Excited</input>
+                            <label class="animate-emotion excited"for="excited"></label>
+                            <input id="happy" type="radio" name="emotion" value="3" >Happy</input>
+                            <label class="animate-emotion happy"for="happy"></label>
+                            <input id="neutral" type="radio" name="emotion" value="4" >Neutral</input>
+                            <label class="animate-emotion neutral"for="neutral"></label>
+                            <input id="relaxed" type="radio" name="emotion" value="5" >Relaxed</input>
+                            <label class="animate-emotion excited"for="relaxed"></label>
+                            <input id="sad" type="radio" name="emotion" value="6" >Sad</input>
+                            <label class="animate-emotion sad"for="sad"></label>
+                            <input id="shocked" type="radio" name="emotion" value="7" >Shocked</input>
+                            <label class="animate-emotion shocked"for="shocked"></label>
+                            <input id="stressed" type="radio" name="emotion" value="8" >Stressed</input>
+                            <label class="animate-emotion stressed"for="stressed"></label>
+                            <input id="tired" type="radio" name="emotion" value="9" >Tired</input>
+                            <label class="animate-emotion tired"for="tired"></label>
+                            -->
+                        </div>
+    
+                <div class="col-lg-3 col-sm-6">
+                        
+                </div>
+            </div>
+            <div class="container-fluid" id="AddActivity">
+                <div class="row" >
+                    <h1 align = "center"> What did you do? </h1>
+                </div>
+                        <div id="activityGrid" class="activity-selector">
+
+                            
+                        </div>
+                        <div id="othersEntry" style="display:none">
+                           
+                                <h1 align="center">What's the new thing you did?</h1>
+                           
+                           <div class="othersInput" style="margin-left: auto; margin-right: auto;">
+                                <input align="center" style="vertical-align:center" id="othersName" placeholder="Enter activity name">
+                        
+                            </div>
+                           
+                        </div>
+    
+                <div class="col-lg-3 col-sm-6">
+                        
+                </div>
+            </div>
+<div align="center" id="AddBtn" style="margin:20px;">
+              <button type="button" class="btn" align="center" onclick="postActivity()"><h5>Add Entry</h5></button>
+          </div>
+          
+        </div>
+
+
+        <footer class="footer">
+            <div class="container-fluid">
+                <nav class="pull-left">
+                   
+                </nav>
+                <div class="copyright pull-right">Template obtained from <a href="http://www.creative-tim.com">Creative Tim</a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+</div>
+
+
+</body>
+
+    <!--   Core JS Files   -->
+    <script src="assets/js/jquery-1.10.2.js" type="text/javascript"></script>
+	<script src="assets/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--  Checkbox, Radio & Switch Plugins -->
+	<!-- <script src="assets/js/bootstrap-checkbox-radio.js"></script> -->
+
+	<!--  Charts Plugin -->
+	<!-- <script src="assets/js/chartist.min.js"></script> -->
+
+    <!--  Notifications Plugin    -->
+    <script src="assets/js/bootstrap-notify.js"></script>
+
+    <!--  Google Maps Plugin    -->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
+
+    <!-- Paper Dashboard Core javascript and methods for Demo purpose -->
+	<script src="assets/js/paper-dashboard.js"></script>
+
+	
+
+</html>

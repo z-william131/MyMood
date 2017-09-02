@@ -1,0 +1,88 @@
+.emotion-selector input{
+    margin:0;padding:0;
+    -webkit-appearance:none;
+       -moz-appearance:none;
+            appearance:none;
+}
+
+.depressed{background-image:url(../img/emotions/depressed.png);}
+.excited{background-image:url(../img/emotions/excited.png);}
+.sad{background-image:url(../img/emotions/sad.png);}
+.happy{background-image:url(../img/emotions/happy.png);}
+.neutral{background-image:url(../img/emotions/neutral.png);}
+.relaxed{background-image:url(../img/emotions/relaxed.png);}
+.shocked{background-image:url(../img/emotions/shocked.png);}
+.stressed{background-image:url(../img/emotions/stressed.png);}
+.tired{background-image:url(../img/emotions/tired.png);}
+
+.emotion-selector input:active +.animate-emotion{opacity: .9;}
+.emotion-selector input:checked +.animate-emotion{
+    -webkit-filter: none;
+       -moz-filter: none;
+            filter: none;
+}
+.animate-emotion{
+    cursor:pointer;
+    background-size:contain;
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:100px;height:100px;
+    -webkit-transition: all 100ms ease-in;
+       -moz-transition: all 100ms ease-in;
+            transition: all 100ms ease-in;
+    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
+       -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
+            filter: brightness(1.8) grayscale(1) opacity(.7);
+}
+.animate-emotion:hover{
+    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
+       -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
+            filter: brightness(1.2) grayscale(.5) opacity(.9);
+}
+/* Activity Radios */
+
+
+.activity-selector input{
+    margin:0;padding:0;
+    -webkit-appearance:none;
+       -moz-appearance:none;
+            appearance:none;
+}
+
+.depressed{background-image:url(../img/emotions/depressed.png);}
+.excited{background-image:url(../img/emotions/excited.png);}
+.sad{background-image:url(../img/emotions/sad.png);}
+.happy{background-image:url(../img/emotions/happy.png);}
+.neutral{background-image:url(../img/emotions/neutral.png);}
+.relaxed{background-image:url(../img/emotions/relaxed.png);}
+.shocked{background-image:url(../img/emotions/shocked.png);}
+.stressed{background-image:url(../img/emotions/stressed.png);}
+.tired{background-image:url(../img/emotions/tired.png);}
+
+.activity-selector input:active +.animate-activity{opacity: .9;}
+.activity-selector input:checked +.animate-activity{
+    -webkit-filter: none;
+       -moz-filter: none;
+            filter: none;
+}
+.animate-activity{
+    cursor:pointer;
+    background-size:contain;
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:100px;height:100px;
+    -webkit-transition: all 100ms ease-in;
+       -moz-transition: all 100ms ease-in;
+            transition: all 100ms ease-in;
+    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
+       -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
+            filter: brightness(1.8) grayscale(1) opacity(.7);
+}
+.animate-activity:hover{
+    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
+       -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
+            filter: brightness(1.2) grayscale(.5) opacity(.9);
+}
+.floatedTable {
+            float:left;
+        }
